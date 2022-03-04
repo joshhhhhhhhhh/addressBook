@@ -1,0 +1,66 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>SYSC 4806 Lab 4</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js">
+        $(document).on("submit", "#createBook", function(event) {
+            event.preventDefault();
+
+            $.ajax({
+                type: "POST",
+                url: "/addressBooks",
+                data: {},
+            }).then(function(data) {
+                $(".addressBook").replaceWith("AddressBook #: " + data.id);
+            });
+        });
+
+        $(document).on("submit",".buddy_submit", function(event) {
+            var num = $(this).class;
+            var data = {
+                "name" : $("#name" + num).val(),
+                "phoneNumber" : $("#phoenNumber" + num).val()
+            };
+            event.preventDefault();
+
+            $.ajax({
+                headers: {
+                    Accept: "application/json; charset=utf-8",
+                    "Content-Type": "application/json; charset=utf-8"
+                },
+                type: "POST",
+                url: "addressBooks/" + num +"/buddy",
+                data: JSON.stringify(data),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function(response) {
+                    console.log(response);
+                    $("#buddy" + num).append("<p>" + response.name + "</p><br/><p>" + response.phoneNumber + "</p><br/>");
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+<form action="#" id="ab_submit" th:action="@{/addressBooks}" th:object="${addressBooks}" method="post">
+    <p><input type="submit" value="Create New Address Book" /></p>
+</form>
+<div th:each = "addressBook : ${addressBooks}">
+    <p>---------------------------------------------------</p>
+    <p class=".addressBook" th:text="'AddressBook #' + ${addressBook.id}"></p>
+    <form action="#" th:id="'buddy_submit' + ${addressBook.id}" th:class="${addressBook.id}" th:action="@{/addressBooks/{id}/buddy(id=${addressBook.id})}" th:object="${buddy}" method="post">
+        <p>Name: <input type="text" class="name" th:field="*{name}" th:id="'name' + ${addressBook.id}"/></p>
+        <p>Phone Number: <input type="text" class="phoneNumber" th:field="*{phoneNumber}" th:id="'phoneNumber' + ${addressBook.id}"/></p>
+        <p><input type="submit" value="Create New Buddy" /></p>
+    </form>
+    <div th:id="'buddy' + ${addressBook.id}" th:each = "buddy : ${addressBook.getAddressBook()}">
+        <p>-----------------</p>
+        <p th:text="'Buddy #' + ${buddy.id}"></p>
+        <p th:text="'----Name: ' + ${buddy.name}"></p>
+        <p th:text="'----Phone Number: ' + ${buddy.phoneNumber}"></p>
+    </div>
+</div>
+</body>
+</html>
